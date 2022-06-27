@@ -23,7 +23,7 @@ mongoClient.connect().then(() => {
 
 app.post("/participants", async (req, res) => {
   const participantSchema = joi.object({
-    name: joi.string().required(),
+    name: joi.string().trim().required(),
   });
   const participant = req.body;
   const participantValidation = participantSchema.validate(participant, { abortEarly: true });
@@ -57,9 +57,9 @@ app.get("/participants", (req, res) => {
 
 app.post("/messages", async (req, res) => {
   const messageSchema = joi.object({
-    to: joi.string().required(),
-    text: joi.string().required(),
-    type: joi.string().required().valid("message", "private_message"),
+    to: joi.string().trim().required(),
+    text: joi.string().trim().required(),
+    type: joi.string().trim().required().valid("message", "private_message"),
   });
   const message = req.body;
   const fromUser = req.header("User");
@@ -86,7 +86,7 @@ app.get("/messages", (req, res) => {
 
   if (limit) {
     db.collection("messages")
-      .find({ $or: [{ to: { $in: [user, "Todos"] } }, { from: user }] })
+      .find({ $or: [{ to: { $in: [user, "Todos"] } }, { from: user }, { type: "message" }] })
       .hint({ $natural: -1 })
       .limit(limit)
       .toArray()
@@ -134,9 +134,9 @@ app.put("/messages/:id", async (req, res) => {
   const messageID = new ObjectId(req.params.id);
   const newMessage = req.body;
   const messageSchema = joi.object({
-    to: joi.string().required(),
-    text: joi.string().required(),
-    type: joi.string().required().valid("message", "private_message"),
+    to: joi.string().trim().required(),
+    text: joi.string().trim().required(),
+    type: joi.string().trim().required().valid("message", "private_message"),
   });
   const messageValidation = messageSchema.validate(newMessage);
   if (messageValidation.error) {
